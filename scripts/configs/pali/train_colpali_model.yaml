@@ -1,33 +1,59 @@
 config:
   (): colpali_engine.trainer.colmodel_training.ColModelTrainingConfig
-  output_dir: /root/colpali-engine-training/models/right_pad/train_colpali-3b-mix-448
+  output_dir: !path ../../../models/without_tabfquad_no_pairwise/train_colpali_all-3b-mix-448
   processor:
-    (): colpali_engine.utils.transformers_wrappers.AllPurposeWrapper
-    class_to_instanciate: !ext colpali_engine.models.ColPaliProcessor
-    pretrained_model_name_or_path:  "./models/colpaligemma-3b-mix-448-base" # "./models/paligemma-3b-mix-448"
+    (): colpali_engine.utils.transformers_wrappers.AutoProcessorWrapper
+    pretrained_model_name_or_path: "./models/paligemma-3b-mix-448"  # Use the base model from HF
     max_length: 50
   model:
     (): colpali_engine.utils.transformers_wrappers.AllPurposeWrapper
     class_to_instanciate: !ext colpali_engine.models.ColPali
-    pretrained_model_name_or_path: "./models/colpaligemma-3b-mix-448-base"
-    torch_dtype:  !ext torch.bfloat16
-#    device_map: "auto"
-#    quantization_config:
-#      (): transformers.BitsAndBytesConfig
-#      load_in_4bit: true
-#      bnb_4bit_quant_type: "nf4"
-#      bnb_4bit_compute_dtype:  "bfloat16"
-#      bnb_4bit_use_double_quant: true
+    pretrained_model_name_or_path: "./models/paligemma-3b-mix-448"  # Use the base model from HF
+    torch_dtype: !ext torch.bfloat16
 
+  # Training dataset - this should work with the default setup
   train_dataset: 
     (): colpali_engine.utils.dataset_transformation.load_train_set
-  eval_dataset: !import ../data/test_data.yaml
+  
+  # Use a simple eval dataset for now
+  eval_dataset:
+    (): colpali_engine.utils.dataset_transformation.load_train_set
+    # You can modify this to use a proper eval dataset later
 
   max_length: 50
   run_eval: true
+  
   loss_func:
-    (): colpali_engine.loss.late_interaction_losses.ColbertPairwiseCELoss
-  tr_args: !import ../tr_args/default_tr_args.yaml
+    (): colpali_engine.loss.late_interaction_losses.ColbertLoss
+  
+  # Training arguments
+  tr_args:
+    (): transformers.TrainingArguments
+    output_dir: !path ../../../models/without_tabfquad_no_pairwise/train_colpali_all-3b-mix-448
+    num_train_epochs: 1  # Start with 1 epoch for testing
+    per_device_train_batch_size: 1  # Small batch size for single GPU
+    per_device_eval_batch_size: 1
+    gradient_accumulation_steps: 8  # Increase to simulate larger batch size
+    warmup_steps: 50
+    logging_steps: 10
+    eval_steps: 100
+    save_steps: 200
+    save_total_limit: 2
+    load_best_model_at_end: true
+    metric_for_best_model: "eval_loss"
+    greater_is_better: false
+    evaluation_strategy: "steps"
+    save_strategy: "steps"
+    learning_rate: 5e-5
+    weight_decay: 0.01
+    dataloader_num_workers: 4
+    fp16: false
+    bf16: true  # Use bfloat16 for better stability
+    remove_unused_columns: false
+    report_to: ["wandb"]  # Enable wandb logging
+    run_name: "colpali-training"
+  
+  # LoRA configuration for efficient training
   peft_config:
     (): peft.LoraConfig
     r: 32
@@ -36,6 +62,4 @@ config:
     init_lora_weights: "gaussian"
     bias: "none"
     task_type: "FEATURE_EXTRACTION"
-    target_modules: '(.*(language_model).*(down_proj|gate_proj|up_proj|k_proj|q_proj|v_proj|o_proj).*$|.*(custom_text_proj).*$)'
-    # target_modules: '(.*(language_model).*(down_proj|gate_proj|up_proj|k_proj|q_proj|v_proj|o_proj).*$|.*(custom_text_proj).*$)'
-
+    target_modules: '(.*(language_model|vision_model).*(down_proj|gate_proj|up_proj|k_proj|q_proj|v_proj|o_proj).*$|.*(multi_modal_projector\.linear).*$|.*(custom_text_proj).*$)'
