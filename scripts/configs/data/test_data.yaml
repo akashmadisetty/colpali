@@ -1,10 +1,10 @@
 # eval_dataset_loader:
 infovqa_subsampled:
   (): colpali_engine.utils.dataset_transformation.load_eval_set
-  dataset_path: !path ../../../data_dir/infovqa_test_subsampled
+  dataset_path: "vidore/infovqa_test_subsampled"
 docvqa_subsampled:
   (): colpali_engine.utils.dataset_transformation.load_eval_set
-  dataset_path: !path ../../../data_dir/docvqa_test_subsampled
+  dataset_path: "vidore/docvqa_test_subsampled"
 arxivqa_subsampled:
   (): colpali_engine.utils.dataset_transformation.load_eval_set
-  dataset_path: !path ../../../data_dir/arxivqa_test_subsampled
+  dataset_path: "vidore/arxivqa_test_subsampled"
