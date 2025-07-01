@@ -39,9 +39,6 @@ config:
     save_steps: 100
     eval_steps: 10
     save_strategy: "steps"
-    load_best_model_at_end: true
-    metric_for_best_model: "eval_loss"
-    greater_is_better: false
     dataloader_num_workers: 0
     remove_unused_columns: false
     bf16: true
