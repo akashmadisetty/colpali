@@ -26,7 +26,27 @@ config:
   run_eval: true
   loss_func:
     (): colpali_engine.loss.late_interaction_losses.ColbertPairwiseCELoss
-  tr_args: !import ../tr_args/default_tr_args.yaml
+  tr_args: 
+    (): transformers.TrainingArguments
+    output_dir: "/root/colpali-engine-training/models/right_pad/train_colpali-3b-mix-448"
+    num_train_epochs: 1
+    per_device_train_batch_size: 4
+    per_device_eval_batch_size: 4
+    gradient_accumulation_steps: 1
+    learning_rate: 2e-5
+    warmup_steps: 10
+    logging_steps: 1
+    save_steps: 100
+    eval_steps: 10
+    evaluation_strategy: "steps"
+    save_strategy: "steps"
+    load_best_model_at_end: true
+    metric_for_best_model: "eval_loss"
+    greater_is_better: false
+    dataloader_num_workers: 0
+    remove_unused_columns: false
+    bf16: true
+    do_eval: true
   peft_config:
     (): peft.LoraConfig
     r: 32
