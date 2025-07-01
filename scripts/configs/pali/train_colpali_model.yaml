@@ -20,9 +20,9 @@ config:
 #      bnb_4bit_use_double_quant: true
   train_dataset: 
     (): colpali_engine.utils.dataset_transformation.load_train_set
-  eval_dataset: 
-    (): colpali_engine.utils.dataset_transformation.load_eval_set
-    dataset_path: "akashmadisetty/colpali_train_set_sampled_100" 
+  eval_dataset: !import ../data/test_data.yaml
+#    (): colpali_engine.utils.dataset_transformation.load_eval_set
+#   dataset_path: "akashmadisetty/colpali_train_set_sampled_100" 
    
   max_length: 50
   run_eval: true
